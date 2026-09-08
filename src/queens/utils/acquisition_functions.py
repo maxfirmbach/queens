@@ -14,15 +14,26 @@
 #
 """Acquisition functions for Bayesian optimization."""
 
+from abc import ABC, abstractmethod
+from typing import override
+
 from scipy.stats import norm
 
 
-def expected_improvement(
-    mean: float,
-    standard_deviation: float,
-    best_objective: float,
-    exploration_parameter: float = 0.0,
-) -> float:
+class AcquisitionFunction(ABC):
+    """Base class for acquisition functions."""
+
+    @abstractmethod
+    def evaluate(
+        self,
+        mean: float,
+        standard_deviation: float,
+        best_objective: float,
+    ) -> float:
+        """Evaluate the acquisition function."""
+
+
+class ExpectedImprovement(AcquisitionFunction):
     r"""Compute the expected improvement for a minimization problem.
 
     Expected improvement measures the improvement over the best observed
@@ -51,13 +62,13 @@ def expected_improvement(
            https://doi.org/10.1023/A:1008306431147
 
     Args:
-        mean:
+        mean (float):
             Predictive mean of the objective at the candidate point.
-        standard_deviation:
+        standard_deviation (float):
             Predictive standard deviation at the candidate point.
-        best_objective:
+        best_objective (float):
             Smallest objective value observed so far.
-        exploration_parameter:
+        exploration_parameter (float):
             Nonnegative parameter controlling exploration. Larger values make
             improvement more difficult to achieve and generally encourage
             exploration. Defaults to ``0.0``.
@@ -77,21 +88,29 @@ def expected_improvement(
         Expected improvement is normally maximized. If it is passed to an
         optimizer that minimizes its objective, its negative should be used.
     """
-    improvement = best_objective - mean - exploration_parameter
-    standardized_improvement = improvement / standard_deviation
 
-    return float(
-        improvement * norm.cdf(standardized_improvement)
-        + standard_deviation * norm.pdf(standardized_improvement)
-    )
+    def __init__(self, exploration_parameter: float = 0.0) -> None:
+        """Initialize expected improvement function."""
+        self.exploration_parameter = exploration_parameter
+
+    @override
+    def evaluate(
+        self,
+        mean: float,
+        standard_deviation: float,
+        best_objective: float,
+    ) -> float:
+        """Evaluate expected improvement."""
+        improvement = best_objective - mean - self.exploration_parameter
+        standardized_improvement = improvement / standard_deviation
+
+        return float(
+            improvement * norm.cdf(standardized_improvement)
+            + standard_deviation * norm.pdf(standardized_improvement)
+        )
 
 
-def probability_of_improvement(
-    mean: float,
-    standard_deviation: float,
-    best_objective: float,
-    exploration_parameter: float = 0.0,
-) -> float:
+class ProbabilityOfImprovement(AcquisitionFunction):
     r"""Compute the probability of improvement for a minimization problem.
 
     Probability of improvement measures the probability that evaluating a
@@ -112,19 +131,19 @@ def probability_of_improvement(
 
     References:
         .. [1] Kushner, H. J. (1964).
-           "A New Method of Locating the Maximum Point of an Arbitrary Multipeak
-           Curve in the Presence of Noise."
+           "A New Method of Locating the Maximum Point of an Arbitrary
+           Multipeak Curve in the Presence of Noise."
            Journal of Basic Engineering, 86(1), 97–106.
            https://doi.org/10.1115/1.3653121
 
     Args:
-        mean:
+        mean (float):
             Predictive mean of the objective at the candidate point.
-        standard_deviation:
+        standard_deviation (float):
             Predictive standard deviation at the candidate point.
-        best_objective:
+        best_objective (float):
             Smallest objective value observed so far.
-        exploration_parameter:
+        exploration_parameter (float):
             Nonnegative parameter controlling exploration. Larger values
             require a candidate to outperform the current best value by a
             larger margin. Defaults to ``0.0``.
@@ -142,17 +161,26 @@ def probability_of_improvement(
         Probability of improvement is normally maximized. If it is passed to an
         optimizer that minimizes its objective, its negative should be used.
     """
-    improvement = best_objective - mean - exploration_parameter
-    standardized_improvement = improvement / standard_deviation
 
-    return float(norm.cdf(standardized_improvement))
+    def __init__(self, exploration_parameter: float = 0.0) -> None:
+        """Initialize probability of improvement function."""
+        self.exploration_parameter = exploration_parameter
+
+    @override
+    def evaluate(
+        self,
+        mean: float,
+        standard_deviation: float,
+        best_objective: float,
+    ) -> float:
+        """Evaluate probability of improvement."""
+        improvement = best_objective - mean - self.exploration_parameter
+        standardized_improvement = improvement / standard_deviation
+
+        return float(norm.cdf(standardized_improvement))
 
 
-def upper_confidence_bound(
-    mean: float,
-    standard_deviation: float,
-    exploration_parameter: float = 2.0,
-) -> float:
+class UpperConfidenceBound(AcquisitionFunction):
     r"""Compute a confidence-bound acquisition value for maximization.
 
     This function returns the upper confidence bound:
@@ -165,11 +193,11 @@ def upper_confidence_bound(
     predicted objective value or large predictive uncertainty.
 
     Args:
-        mean:
+        mean (float):
             Predictive mean of the objective at the candidate point.
-        standard_deviation:
+        standard_deviation (float):
             Predictive standard deviation at the candidate point.
-        exploration_parameter:
+        exploration_parameter (float):
             Nonnegative parameter controlling exploration. Larger values give
             more weight to uncertain candidates. Defaults to ``2.0``.
 
@@ -177,4 +205,17 @@ def upper_confidence_bound(
         float:
             Acquisition value. Larger values indicate more promising candidates.
     """
-    return float(-mean + exploration_parameter * standard_deviation)
+
+    def __init__(self, exploration_parameter: float = 2.0) -> None:
+        """Initialize upper conficence bound function."""
+        self.exploration_parameter = exploration_parameter
+
+    @override
+    def evaluate(
+        self,
+        mean: float,
+        standard_deviation: float,
+        best_objective: float = 0.0,
+    ) -> float:
+        """Evaluate the confidence-bound acquisition score."""
+        return float(-mean + self.exploration_parameter * standard_deviation)
