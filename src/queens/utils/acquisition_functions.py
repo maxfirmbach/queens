@@ -44,10 +44,17 @@ class ExpectedImprovement(AcquisitionFunction):
     The expected improvement is defined as
 
     .. math::
-        \operatorname{EI}(x) = \Delta(x)\Phi(z(x)) + \sigma(x)\phi(z(x)),
+
+        \operatorname{EI}(x)
+        = \Delta(x)\Phi(z(x)) + \sigma(x)\phi(z(x)),
+
     where
+
     .. math::
-        \Delta(x) = f_{\min} - \mu(x) - \xi, \qquad z(x) = \frac{\Delta(x)}{\sigma(x)}.
+
+        \Delta(x) = f_{\min} - \mu(x) - \xi,
+        \qquad
+        z(x) = \frac{\Delta(x)}{\sigma(x)}.
 
     Here, :math:`\mu(x)` and :math:`\sigma(x)` are the predictive mean and
     standard deviation, :math:`f_{\min}` is the best objective value observed
@@ -56,7 +63,7 @@ class ExpectedImprovement(AcquisitionFunction):
     and probability density function of the standard normal distribution.
 
     References:
-        .. [1] Jones, D. R., Schonlau, M., and Welch, W. J. (1998).
+        .. [Jones1998] Jones, D. R., Schonlau, M., and Welch, W. J. (1998).
            "Efficient Global Optimization of Expensive Black-Box Functions."
            Journal of Global Optimization, 13, 455–492.
            https://doi.org/10.1023/A:1008306431147
@@ -130,7 +137,7 @@ class ProbabilityOfImprovement(AcquisitionFunction):
     probability of obtaining an improvement, not its possible magnitude.
 
     References:
-        .. [1] Kushner, H. J. (1964).
+        .. [Kushner1964] Kushner, H. J. (1964).
            "A New Method of Locating the Maximum Point of an Arbitrary
            Multipeak Curve in the Presence of Noise."
            Journal of Basic Engineering, 86(1), 97–106.
