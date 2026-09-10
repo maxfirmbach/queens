@@ -36,7 +36,7 @@ class AcquisitionFunction(ABC):
 class ExpectedImprovement(AcquisitionFunction):
     r"""Compute the expected improvement for a minimization problem.
 
-    Expected improvement measures the improvement over the best observed
+    Expected improvement [Jones1998]_ measures the improvement over the best observed
     objective value that can be expected when evaluating a candidate point.
     It accounts for both the predicted objective value and the uncertainty of
     the surrogate model.
@@ -120,7 +120,7 @@ class ExpectedImprovement(AcquisitionFunction):
 class ProbabilityOfImprovement(AcquisitionFunction):
     r"""Compute the probability of improvement for a minimization problem.
 
-    Probability of improvement measures the probability that evaluating a
+    Probability of improvement [Kushner1964]_ measures the probability that evaluating a
     candidate point produces an objective value smaller than the best value
     observed so far by at least the exploration parameter.
 
